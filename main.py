@@ -3,13 +3,17 @@ from tkinter import ttk, filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import nibabel as nib
+import numpy as np
 
 # Funciones de procesamiento de imágenes
 from algoritmos.isodata import isodata
 from algoritmos.umbralizacion import umbralizacion
 from algoritmos.crecimientoR import crecimiento_regiones
 from algoritmos.k_medias import k_medias
-
+from algoritmos.histogramMatching import histogram
+from algoritmos.reescala import linear_rescale
+from algoritmos.z import zCore
+from algoritmos.stripe2 import while_stripe
 # Variable global para almacenar la imagen cargada
 datos = None
 dimensiones = [100, 100, 100]
@@ -62,6 +66,19 @@ def actualizar_cortes(*arg):
         datos_filt = crecimiento_regiones(datos)
     elif filtro == "K-Medias":
         datos_filt = k_medias(datos)
+    elif filtro == "histogram":
+        datos_filt = histogram(datos)
+    elif filtro == "rescalar":
+        datos_filt = linear_rescale(datos)
+    elif filtro == "z-core":
+        datos_filt = zCore(datos)
+    elif filtro == "while_stripe":
+        datos_filt = np.zeros_like(datos)
+        for i in range(datos.shape[2]):
+            datos_filt[:, :, i] = while_stripe(datos[:, :, i])
+        
+        
+        
     else:  # Original
         datos_filt = datos
 
@@ -114,6 +131,17 @@ def aplicar_filtro():
         datos_filt = crecimiento_regiones(datos)
     elif filtro == "K-Medias":
         datos_filt = k_medias(datos)
+    elif filtro == "histogram":
+        datos_filt = histogram(datos)
+    elif filtro == "rescalar":
+        datos_filt = linear_rescale(datos)
+    elif filtro == "z-core":
+        datos_filt = zCore(datos)
+    elif filtro == "while_stripe":
+        datos_filt = np.zeros_like(datos)
+        for i in range(datos.shape[2]):
+            datos_filt[:, :, i] = while_stripe(datos[:, :, i])
+         
     else:  # Original
         datos_filt = datos
 
@@ -125,7 +153,7 @@ def aplicar_filtro():
 
 filtro_label = ttk.Label(sidebar_frame, text="Escoge un filtro de segmentacion")
 # Crear una lista deslizable para seleccionar el filtro
-filtro_combobox = ttk.Combobox(sidebar_frame, values=["Original", "Umbralización", "Isodata", "Crecimiento de Regiones", "K-Medias"])
+filtro_combobox = ttk.Combobox(sidebar_frame, values=["Original", "Umbralización", "Isodata", "Crecimiento de Regiones", "K-Medias", "histogram", "rescalar", "z-core", "while_stripe"])
 filtro_combobox.set("Original")
 filtro_label.pack(pady=10)
 filtro_combobox.pack()
