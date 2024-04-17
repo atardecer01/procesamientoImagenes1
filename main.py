@@ -14,6 +14,21 @@ from algoritmos.histogramMatching import histogram
 from algoritmos.reescala import linear_rescale
 from algoritmos.z import zCore
 from algoritmos.stripe2 import while_stripe
+from algoritmos.hh2 import histogram_matching
+
+import matplotlib.pyplot as plt
+
+template_image = nib.load('./sub-03_T1w.nii').get_fdata()
+
+# Función para mostrar el histograma de una imagen
+def mostrar_histograma(imagen, titulo):
+    plt.figure()
+    plt.hist(imagen.flatten(), bins=100, color='c')
+    plt.xlabel('Intensidad')
+    plt.ylabel('Frecuencia')
+    plt.title(titulo)
+    plt.show()
+
 # Variable global para almacenar la imagen cargada
 datos = None
 dimensiones = [100, 100, 100]
@@ -58,6 +73,9 @@ def actualizar_cortes(*arg):
 
     # Obtener el filtro seleccionado
     filtro = filtro_combobox.get()
+     # Mostrar el histograma de la imagen original antes de aplicar el filtro
+    #mostrar_histograma(datos, 'Histograma de la imagen original')
+
     if filtro == "Umbralización":
         datos_filt = umbralizacion(datos)
     elif filtro == "Isodata":
@@ -72,6 +90,9 @@ def actualizar_cortes(*arg):
         datos_filt = linear_rescale(datos)
     elif filtro == "z-core":
         datos_filt = zCore(datos)
+    elif filtro == "matching":
+        datos_filt = histogram_matching(datos, template_image)    
+       
     elif filtro == "while_stripe":
         datos_filt = np.zeros_like(datos)
         for i in range(datos.shape[2]):
@@ -81,6 +102,9 @@ def actualizar_cortes(*arg):
         
     else:  # Original
         datos_filt = datos
+
+    # Mostrar el histograma de la imagen filtrada después de aplicar el filtro
+    #mostrar_histograma(datos_filt, f'Histograma después de aplicar {filtro}')
 
     # Actualizar las imágenes en las subparcelas
     axs[0, 0].imshow(datos[:, y, :], cmap='gray')
@@ -123,6 +147,9 @@ sidebar_frame.pack(side=tk.LEFT, fill=tk.Y)
 def aplicar_filtro():
     # Obtener el filtro seleccionado
     filtro = filtro_combobox.get()
+     # Mostrar el histograma de la imagen original antes de aplicar el filtro
+    mostrar_histograma(datos[datos> 10], 'Histograma de la imagen original')
+
     if filtro == "Umbralización":
         datos_filt = umbralizacion(datos)
     elif filtro == "Isodata":
@@ -137,6 +164,8 @@ def aplicar_filtro():
         datos_filt = linear_rescale(datos)
     elif filtro == "z-core":
         datos_filt = zCore(datos)
+    elif filtro == "matching":
+        datos_filt = histogram_matching(datos, template_image)    
     elif filtro == "while_stripe":
         datos_filt = np.zeros_like(datos)
         for i in range(datos.shape[2]):
@@ -145,6 +174,8 @@ def aplicar_filtro():
     else:  # Original
         datos_filt = datos
 
+    # Mostrar el histograma de la imagen filtrada después de aplicar el filtro
+    mostrar_histograma(datos_filt[datos_filt > 10], f'Histograma después de aplicar {filtro}')
     # Actualizar las imágenes en las subparcelas con el nuevo filtro
     actualizar_cortes()
 
@@ -153,7 +184,7 @@ def aplicar_filtro():
 
 filtro_label = ttk.Label(sidebar_frame, text="Escoge un filtro de segmentacion")
 # Crear una lista deslizable para seleccionar el filtro
-filtro_combobox = ttk.Combobox(sidebar_frame, values=["Original", "Umbralización", "Isodata", "Crecimiento de Regiones", "K-Medias", "histogram", "rescalar", "z-core", "while_stripe"])
+filtro_combobox = ttk.Combobox(sidebar_frame, values=["Original", "Umbralización", "Isodata", "Crecimiento de Regiones", "K-Medias", "histogram", "rescalar", "z-core", "while_stripe", "matching"])
 filtro_combobox.set("Original")
 filtro_label.pack(pady=10)
 filtro_combobox.pack()
