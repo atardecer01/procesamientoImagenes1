@@ -94,9 +94,7 @@ def actualizar_cortes(*arg):
         datos_filt = histogram_matching(datos, template_image)    
        
     elif filtro == "while_stripe":
-        datos_filt = np.zeros_like(datos)
-        for i in range(datos.shape[2]):
-            datos_filt[:, :, i] = while_stripe(datos[:, :, i])
+        datos_filt = while_stripe(datos,1)
         
         
         
@@ -143,13 +141,24 @@ main_frame.pack(fill=tk.BOTH, expand=True)
 sidebar_frame = ttk.Frame(main_frame, width=100, relief=tk.RAISED, padding=(10, 10))
 sidebar_frame.pack(side=tk.LEFT, fill=tk.Y)
 
+def reverse_array(a):
+  """Reverses the given array."""
+  return a[::-1]
+
+def aux(imgs):
+    img = reverse_array(imgs)
+    for i in range(1, len(img) - 1):
+        if img[i] > img[i-1] and img[i] > img[i+1]:
+            return img[i]
 
 def aplicar_filtro():
     # Obtener el filtro seleccionado
     filtro = filtro_combobox.get()
      # Mostrar el histograma de la imagen original antes de aplicar el filtro
     mostrar_histograma(datos[datos> 10], 'Histograma de la imagen original')
-
+    print('mostrar vector de datos', datos[datos> 10])
+    valor = aux(datos[datos> 10])
+    print('valor', valor)
     if filtro == "Umbralización":
         datos_filt = umbralizacion(datos)
     elif filtro == "Isodata":
@@ -167,9 +176,7 @@ def aplicar_filtro():
     elif filtro == "matching":
         datos_filt = histogram_matching(datos, template_image)    
     elif filtro == "while_stripe":
-        datos_filt = np.zeros_like(datos)
-        for i in range(datos.shape[2]):
-            datos_filt[:, :, i] = while_stripe(datos[:, :, i])
+        datos_filt =  while_stripe(datos,valor)
          
     else:  # Original
         datos_filt = datos

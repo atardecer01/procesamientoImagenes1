@@ -29,7 +29,7 @@ def mostrar_imagen_y_histograma(imagen):
 # Ejemplo de uso
 if __name__ == "__main__":
     # Cargar la imagen NIfTI
-    imagen = nib.load('./imgH3.nii')
+    imagen = nib.load('./imagen.nii')
 
     # Mostrar la imagen y su histograma
     mostrar_imagen_y_histograma(imagen)
