@@ -3,7 +3,7 @@ from tkinter import ttk, filedialog
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import nibabel as nib
-
+from PIL import Image
 # Funciones de procesamiento de imágenes
 from algoritmos.isodata import isodata
 from algoritmos.umbralizacion import umbralizacion
@@ -13,7 +13,8 @@ from algoritmos.k_medias import k_medias
 # Variable global para almacenar la imagen cargada
 datos = None
 dimensiones = [100, 100, 100]
-
+seleccionando = False
+x_ini, y_ini, x_fin, y_fin = 0, 0, 0, 0
 
 def cargar_imagen():
     global datos, dimensiones
@@ -40,9 +41,6 @@ def cargar_imagen():
 
         # Mostrar la imagen en los cortes iniciales
         actualizar_cortes()
-
-
-
 
 def actualizar_cortes(*arg):
     z = int(slider_z.get())
@@ -86,6 +84,28 @@ def actualizar_cortes(*arg):
 
     plt.tight_layout()
     canvas.draw()
+
+def activar_seleccion(event):
+    global seleccionando, x_ini, y_ini
+    seleccionando = True
+    x_ini, y_ini = event.x, event.y
+
+def seleccionar_area(event):
+    global x_fin, y_fin
+    x_fin, y_fin = event.x, event.y
+    canvas.delete("selection_rectangle")
+    canvas.create_rectangle(x_ini, y_ini, x_fin, y_fin, outline="red", tag="selection_rectangle")
+
+def guardar_area():
+    global seleccionando, x_ini, y_ini, x_fin, y_fin
+    seleccionando = False
+    area_seleccionada = datos[y_ini:y_fin, x_ini:x_fin]
+    imagen_recortada = Image.fromarray(area_seleccionada)
+    ruta_guardar = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+    if ruta_guardar:
+        imagen_recortada.save(ruta_guardar)
+        print(f"Área seleccionada guardada en: {ruta_guardar}")
+
 
 # Crear la ventana
 root = tk.Tk()
@@ -177,6 +197,9 @@ fig.tight_layout(pad=3.0)
 # Mostrar la figura en un lienzo de tkinter
 canvas = FigureCanvasTkAgg(fig, master=content_frame)
 canvas.get_tk_widget().pack()
+
+# Enlazar el evento de clic en la imagen a la función activar_seleccion
+canvas.mpl_connect('button_press_event', activar_seleccion)
 
 # Mostrar la ventana
 root.mainloop()
