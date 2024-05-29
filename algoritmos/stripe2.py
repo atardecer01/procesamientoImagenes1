@@ -4,17 +4,16 @@ import nibabel as nib
 def while_stripe(image,v):
     img = image[image > 0]
    # Calcular el histograma de la imagen
-    hist, bins = np.histogram(img.flatten(), bins=200)
+    hist, bins = np.histogram(image.flatten(), bins=256, range=(0, 255))
+    
 
-    # Encontrar el primer pico más alto comenzando desde la derecha del histograma
-    indice_pico = len(hist) - 1 - np.argmax(hist[::-1])
-
-    # Obtener el valor del primer pico encontrado
-    moda = bins[indice_pico]
+    # Obtener el valor del ultimo pico
+    last_peak_value = np.max(bins[:-1][hist > 0])
 
     # Normalizar la imagen dividiendo por el valor del último pico
-    normalized_image = image / moda
+    normalized_image = image / last_peak_value
 
+    normalized_image = np.clip(normalized_image, 0, 10)
     # Crear un objeto NIfTI con los datos procesados
     matched_nii = nib.Nifti1Image(normalized_image, np.eye(4))  # Aquí se asume que la imagen es 3D y tiene una matriz de transformación identidad
     

@@ -1,4 +1,4 @@
-import nibabel as nib
+'''import nibabel as nib
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -56,4 +56,5 @@ resul = histogram_pairing('./sub-03_T1w.nii', './imagen.nii')
 
 # Display the resulting image
 plt.imshow(resul[90, :, :], cmap='gray')
-plt.show()
+plt.show()'''
+

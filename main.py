@@ -18,6 +18,12 @@ from algoritmos.reescala import linear_rescale
 from algoritmos.z import zCore
 from algoritmos.stripe2 import while_stripe
 from algoritmos.hh2 import histogram_matching
+from algoritmos.bordes import bordes
+from algoritmos.curvatura import Curvatura
+from algoritmos.transformacion.registerAfin import registro_imagenesAfin
+from algoritmos.transformacion.regisProyec import registro_imagenesProyec
+from algoritmos.transformacion.registerRigid import registro_imagenesRigid
+
 
 import matplotlib.pyplot as plt
 
@@ -26,7 +32,7 @@ template_image = nib.load('./sub-03_T1w.nii').get_fdata()
 # Función para mostrar el histograma de una imagen
 def mostrar_histograma(imagen, titulo):
     plt.figure()
-    plt.hist(imagen.flatten(), bins=100, color='c')
+    plt.hist(imagen.flatten(), 100)
     plt.xlabel('Intensidad')
     plt.ylabel('Frecuencia')
     plt.title(titulo)
@@ -34,16 +40,18 @@ def mostrar_histograma(imagen, titulo):
 
 # Variable global para almacenar la imagen cargada
 datos = None
+imgss = None
 dimensiones = [100, 100, 100]
 seleccionando = False
 x_ini, y_ini, x_fin, y_fin = 0, 0, 0, 0
 
 def cargar_imagen():
-    global datos, dimensiones
+    global datos, dimensiones, imgss
     ruta_archivo = filedialog.askopenfilename(filetypes=[("NIfTI files", "*.nii"), ("All files", "*.*")])
     if ruta_archivo:
         # Cargar la imagen .nii
         imagen_nii = nib.load(ruta_archivo)
+        imgss = imagen_nii
         datos = imagen_nii.get_fdata()
         dimensiones = datos.shape
         print(f"Imagen cargada: {ruta_archivo}")
@@ -74,6 +82,7 @@ def actualizar_cortes(*arg):
 
     # Obtener el filtro seleccionado
     filtro = filtro_combobox.get()
+    filtro1 = filtro_combobox1.get()
      # Mostrar el histograma de la imagen original antes de aplicar el filtro
     #mostrar_histograma(datos, 'Histograma de la imagen original')
 
@@ -93,6 +102,19 @@ def actualizar_cortes(*arg):
         datos_filt = zCore(datos)
     elif filtro == "matching":
         datos_filt = histogram_matching(datos, template_image)    
+    elif filtro == "bordes":
+        datos_filt = bordes(datos)
+    elif filtro == "curvatura":
+        datos_filt = Curvatura(datos) 
+    elif filtro == "registro":
+        if filtro1 == "Rigido":
+            datos_filt = registro_imagenesRigid("./imagen.nii", "./imagen_rotada.nii")
+        elif filtro1 == "Afines":
+            datos_filt = registro_imagenesAfin("./imagen.nii", "./imagen_rotada.nii")
+        elif filtro1 == "Proyectivo":
+            datos_filt = registro_imagenesProyec("./imagen.nii", "./imagen_rotada.nii")
+        else:
+            datos_filt = datos
        
     elif filtro == "while_stripe":
         datos_filt = while_stripe(datos,1)
@@ -177,6 +199,8 @@ def aux(imgs):
 def aplicar_filtro():
     # Obtener el filtro seleccionado
     filtro = filtro_combobox.get()
+    filtro1 = filtro_combobox1.get()
+
      # Mostrar el histograma de la imagen original antes de aplicar el filtro
     mostrar_histograma(datos[datos> 10], 'Histograma de la imagen original')
     print('mostrar vector de datos', datos[datos> 10])
@@ -198,9 +222,22 @@ def aplicar_filtro():
         datos_filt = zCore(datos)
     elif filtro == "matching":
         datos_filt = histogram_matching(datos, template_image)    
+    elif filtro == "bordes":
+        datos_filt = bordes(datos)
+    elif filtro == "curvatura":
+        datos_filt = Curvatura(datos) 
+
     elif filtro == "while_stripe":
         datos_filt =  while_stripe(datos,valor)
-         
+    elif filtro == "registro":
+        if filtro1 == "Rigido":
+            datos_filt = registro_imagenesRigid("./imagen.nii", "./imagen_rotada.nii")
+        elif filtro1 == "Afines":
+            datos_filt = registro_imagenesAfin("./imagen.nii", "./imagen_rotada.nii")
+        elif filtro1 == "Proyectivo":
+            datos_filt = registro_imagenesProyec("./imagen.nii", "./imagen_rotada.nii")
+        else:
+            datos_filt = datos
     else:  # Original
         datos_filt = datos
 
@@ -214,10 +251,21 @@ def aplicar_filtro():
 
 filtro_label = ttk.Label(sidebar_frame, text="Escoge un filtro de segmentacion")
 # Crear una lista deslizable para seleccionar el filtro
-filtro_combobox = ttk.Combobox(sidebar_frame, values=["Original", "Umbralización", "Isodata", "Crecimiento de Regiones", "K-Medias", "histogram", "rescalar", "z-core", "while_stripe", "matching"])
+filtro_combobox = ttk.Combobox(sidebar_frame, values=[
+                "Original", "Umbralización", "Isodata", "Crecimiento de Regiones", 
+                "K-Medias", "histogram", "rescalar", "z-core", "while_stripe", "matching", 
+                "bordes", "curvatura", 'registro'])
 filtro_combobox.set("Original")
 filtro_label.pack(pady=10)
 filtro_combobox.pack()
+
+filtro_label1 = ttk.Label(sidebar_frame, text="Escoge un filtro de transformacion")
+# Crear una lista deslizable para seleccionar el filtro
+filtro_combobox1 = ttk.Combobox(sidebar_frame, values=[
+                "Rigido", "Afines", "Proyectivo"])
+filtro_combobox1.set("Original")
+filtro_label1.pack(pady=10)
+filtro_combobox1.pack()
 
 # Crear un botón en la barra lateral
 button = ttk.Button(sidebar_frame, text="Aplicar filtro", command=aplicar_filtro, state=tk.DISABLED)
